@@ -15,18 +15,27 @@
 html,body { height:100%; background:var(--bg); color:var(--text); font-family:'Syne',sans-serif; overflow:hidden; }
 .app { display:flex; flex-direction:column; height:100dvh; max-width:480px; margin:0 auto; }
 
-/* HEADER */
 .header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; gap:8px; }
 .header-title { font-size:1.3rem; font-weight:800; letter-spacing:-0.03em; white-space:nowrap; }
 .header-title span { color:var(--accent2); }
 .header-actions { display:flex; gap:7px; align-items:center; flex-shrink:0; }
 .icon-btn { width:36px; height:36px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
 .icon-btn:active { background:var(--surface2); }
-.icon-btn.active-toggle { border-color:var(--accent2); color:var(--accent2); }
 .play-all-btn { padding:6px 11px; border-radius:8px; background:var(--surface2); border:1px solid var(--border); color:var(--accent); font-family:'Syne',sans-serif; font-size:0.68rem; font-weight:700; letter-spacing:0.08em; cursor:pointer; text-transform:uppercase; white-space:nowrap; }
 
-/* TOOLBAR (romaji toggle + count) */
-.toolbar { display:flex; align-items:center; justify-content:space-between; padding:7px 18px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
+/* SYNC BAR */
+.sync-bar { display:flex; align-items:center; justify-content:space-between; padding:7px 18px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; gap:10px; }
+.sync-left { display:flex; align-items:center; gap:8px; }
+.sync-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0; transition:background 0.3s; }
+.sync-dot.synced { background:var(--playing); }
+.sync-dot.syncing { background:#60a5fa; animation:blink 1s ease-in-out infinite; }
+.sync-dot.error { background:var(--danger); }
+.sync-label { font-size:0.65rem; font-family:'Syne Mono',monospace; color:var(--muted); }
+.signin-btn { padding:4px 10px; border-radius:6px; background:var(--accent2); border:none; color:#000; font-family:'Syne',sans-serif; font-size:0.65rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+.signout-btn { padding:4px 10px; border-radius:6px; background:none; border:1px solid var(--border); color:var(--muted); font-family:'Syne Mono',monospace; font-size:0.62rem; cursor:pointer; }
+
+/* TOOLBAR */
+.toolbar { display:flex; align-items:center; justify-content:space-between; padding:7px 18px; border-bottom:1px solid var(--border); flex-shrink:0; }
 .ro-toggle { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
 .ro-toggle-label { font-size:0.68rem; font-family:'Syne Mono',monospace; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
 .toggle-pill { width:34px; height:18px; border-radius:9px; background:var(--border); position:relative; transition:background 0.2s; flex-shrink:0; }
@@ -35,33 +44,24 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 .toggle-pill.on::after { left:19px; }
 .note-count { font-size:0.65rem; font-family:'Syne Mono',monospace; color:var(--muted); }
 
-/* VIEWS */
 .view { display:none; flex-direction:column; flex:1; overflow:hidden; }
 .view.active { display:flex; }
 
-/* SEARCH */
 .search-wrap { padding:10px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
 .search-input { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 13px; color:var(--text); font-family:'Syne Mono',monospace; font-size:0.82rem; outline:none; transition:border-color 0.15s; }
 .search-input:focus { border-color:var(--accent2); }
 .search-input::placeholder { color:var(--muted); }
 
-/* NOTE LIST */
 .notes-list { flex:1; overflow-y:auto; padding:6px 0 110px; -webkit-overflow-scrolling:touch; }
-
 .note-card { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); gap:12px; }
 .note-card.playing { background:#152010; border-left:3px solid var(--playing); padding-left:13px; }
 .note-card-body { flex:1; min-width:0; cursor:pointer; }
-
-/* furigana / main JP text */
-.note-jp { font-family:'Noto Sans JP',sans-serif; font-size:1rem; line-height:1.5; }
-.note-jp ruby { ruby-position:over; }
-.note-jp rt { font-size:0.55em; color:var(--accent2); letter-spacing:0.05em; }
-
-.note-ro { font-size:0.7rem; color:var(--accent2); font-family:'Syne Mono',monospace; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:all 0.2s; }
-.note-ro.hidden { opacity:0; max-height:0; margin:0; pointer-events:none; }
+.note-jp { font-family:'Noto Sans JP',sans-serif; font-size:1rem; line-height:1.6; }
+.note-jp ruby rt { font-size:0.52em; color:var(--accent2); }
+.note-ro { font-size:0.7rem; color:var(--accent2); font-family:'Syne Mono',monospace; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:all 0.2s; max-height:20px; }
+.note-ro.hidden { opacity:0; max-height:0; margin:0; }
 .note-en { font-size:0.7rem; color:var(--muted); font-family:'Syne Mono',monospace; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .note-cat-tag { display:inline-block; font-size:0.55rem; padding:1px 6px; border-radius:4px; border:1px solid var(--border); color:var(--muted); font-family:'Syne Mono',monospace; letter-spacing:0.08em; text-transform:uppercase; margin-top:4px; }
-
 .note-card-play { width:34px; height:34px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); color:var(--accent); font-size:0.8rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; }
 .note-card.playing .note-card-play { background:var(--playing); color:#000; border-color:var(--playing); }
 
@@ -69,7 +69,6 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 .empty-state .big { font-size:2.5rem; margin-bottom:12px; }
 .empty-state p { font-size:0.78rem; line-height:1.7; font-family:'Syne Mono',monospace; }
 
-/* EDITOR */
 .editor-header { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--border); flex-shrink:0; }
 .back-btn { background:none; border:none; color:var(--accent); font-size:1.1rem; cursor:pointer; padding:4px; }
 .editor-header-title { flex:1; font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); font-family:'Syne Mono',monospace; }
@@ -81,16 +80,14 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 .field-input::placeholder { color:var(--muted); font-size:0.82rem; font-family:'Syne Mono',monospace; }
 .field-input.small { font-family:'Syne Mono',monospace; font-size:0.82rem; }
 .cat-suggestions { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
-.cat-chip { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'Syne Mono',monospace; font-size:0.65rem; cursor:pointer; transition:all 0.12s; text-transform:uppercase; }
+.cat-chip { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'Syne Mono',monospace; font-size:0.65rem; cursor:pointer; text-transform:uppercase; }
 .cat-chip:active { background:var(--surface2); border-color:var(--accent2); color:var(--accent); }
 .editor-footer { display:flex; gap:9px; padding:11px 14px; border-top:1px solid var(--border); flex-shrink:0; }
 .btn-full { flex:1; padding:12px; border-radius:11px; border:none; font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; }
 .btn-save { background:var(--accent2); color:#000; }
 .btn-save:active { background:var(--accent); }
-.btn-ai { background:var(--surface2); color:var(--accent); border:1px solid var(--border); flex:0 0 auto; padding:12px 14px; border-radius:11px; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; cursor:pointer; white-space:nowrap; }
 .btn-delete { background:var(--surface2); color:var(--danger); border:1px solid var(--border); flex:0 0 44px; font-size:0.95rem; border-radius:11px; cursor:pointer; }
 
-/* PLAYER */
 .player-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:var(--surface); border-top:1px solid var(--border); padding:11px 16px 22px; display:none; flex-direction:column; gap:9px; z-index:100; }
 .player-bar.visible { display:flex; }
 .player-now { display:flex; align-items:center; gap:12px; }
@@ -106,11 +103,9 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 .speed-chip { padding:3px 11px; border-radius:20px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'Syne Mono',monospace; font-size:0.65rem; cursor:pointer; }
 .speed-chip.active { background:var(--surface2); border-color:var(--accent2); color:var(--accent); }
 
-/* FAB */
 .fab { position:fixed; bottom:22px; right:calc(50% - 222px); width:52px; height:52px; border-radius:50%; background:var(--accent2); color:#000; font-size:1.5rem; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 18px rgba(200,168,76,0.35); z-index:99; }
 .fab.hidden { display:none; }
 
-/* TOAST */
 .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-70px); background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:9px 16px; font-size:0.75rem; font-family:'Syne Mono',monospace; color:var(--text); z-index:200; transition:transform 0.25s ease; white-space:nowrap; pointer-events:none; }
 .toast.show { transform:translateX(-50%) translateY(0); }
 .toast.ok { border-color:var(--playing); color:var(--playing); }
@@ -123,12 +118,22 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <div class="header-title">Japa<span>notto</span></div>
     <div class="header-actions">
       <button class="play-all-btn" onclick="playAll()">▶ All</button>
-      <button class="icon-btn" onclick="showEditor(null)" title="New note">＋</button>
+      <button class="icon-btn" onclick="showEditor(null)">＋</button>
+    </div>
+  </div>
+
+  <!-- SYNC BAR -->
+  <div class="sync-bar">
+    <div class="sync-left">
+      <div class="sync-dot" id="syncDot"></div>
+      <span class="sync-label" id="syncLabel">Not signed in</span>
+    </div>
+    <div id="authBtns">
+      <button class="signin-btn" onclick="signIn()">Sign in with Google</button>
     </div>
   </div>
 
@@ -141,7 +146,7 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
     <span class="note-count" id="noteCount">0 notes</span>
   </div>
 
-  <!-- LIST VIEW -->
+  <!-- LIST -->
   <div class="view active" id="viewList">
     <div class="search-wrap">
       <input class="search-input" type="text" id="searchInput" placeholder="Search…" oninput="renderList()" autocomplete="off"/>
@@ -149,41 +154,33 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
     <div class="notes-list" id="notesList"></div>
   </div>
 
-  <!-- EDITOR VIEW -->
+  <!-- EDITOR -->
   <div class="view" id="viewEditor">
     <div class="editor-header">
       <button class="back-btn" onclick="showList()">←</button>
       <div class="editor-header-title" id="editorLabel">New Note</div>
-      <button class="icon-btn" onclick="speakCurrent()" title="Listen">🔊</button>
+      <button class="icon-btn" onclick="speakCurrent()">🔊</button>
     </div>
     <div class="editor-body">
-
       <div>
         <div class="field-label">Japanese / Hiragana / Kanji</div>
         <textarea class="field-input" id="fieldJp" rows="3" placeholder="あした　／　一緒　／　kanji ok too…"></textarea>
       </div>
-
       <div>
-        <div class="field-label">Romaji <span style="color:var(--muted);font-size:0.55rem">(optional)</span></div>
-        <input class="field-input small" type="text" id="fieldRo" placeholder="ashita…"/>
+        <div class="field-label">Romaji <span class="ai-badge">AI auto</span></div>
+        <input class="field-input small" type="text" id="fieldRo" placeholder="leave blank, AI fills it…"/>
       </div>
-
       <div>
-        <div class="field-label">Furigana <span style="color:var(--muted);font-size:0.55rem">(hiragana reading of kanji, optional)</span></div>
-        <input class="field-input small" type="text" id="fieldFuri" placeholder="いっしょ  ← reading for 一緒"/>
+        <div class="field-label">Furigana <span class="ai-badge">AI auto</span></div>
+        <input class="field-input small" type="text" id="fieldFuri" placeholder="leave blank, AI fills if kanji…"/>
       </div>
-
       <div>
         <div class="field-label">Meaning / English</div>
         <textarea class="field-input small" id="fieldEn" rows="2" placeholder="together, tomorrow…"></textarea>
       </div>
-
       <div>
-        <div class="field-label">
-          Category
-          <span class="ai-badge">AI auto</span>
-        </div>
-        <input class="field-input small" type="text" id="fieldCat" placeholder="leave blank → AI will guess…"/>
+        <div class="field-label">Category <span class="ai-badge">AI auto</span></div>
+        <input class="field-input small" type="text" id="fieldCat" placeholder="leave blank, AI picks…"/>
         <div class="cat-suggestions">
           <button class="cat-chip" onclick="setCat('Vocab')">Vocab</button>
           <button class="cat-chip" onclick="setCat('Grammar')">Grammar</button>
@@ -195,16 +192,14 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
           <button class="cat-chip" onclick="setCat('Greeting')">Greeting</button>
         </div>
       </div>
-
     </div>
     <div class="editor-footer">
       <button class="btn-delete" id="btnDelete" onclick="deleteNote()" style="display:none">🗑</button>
-      <button class="btn-ai btn-full" onclick="aiEnhance()" id="btnAI">✦ AI Fill</button>
-      <button class="btn-full btn-save" onclick="saveNote()">Save</button>
+      <button class="btn-full btn-save" id="btnSave" onclick="saveNote()">Save</button>
     </div>
   </div>
 
-  <!-- PLAYER BAR -->
+  <!-- PLAYER -->
   <div class="player-bar" id="playerBar">
     <div class="player-now">
       <div class="player-dot"></div>
@@ -230,15 +225,24 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 <button class="fab" id="fab" onclick="showEditor(null)">＋</button>
 <div class="toast" id="toast"></div>
 
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+
 <script>
-const STORE_KEY = 'japanotto_v2';
-const API_URL   = 'https://api.anthropic.com/v1/messages';
+// ── CONFIG ──
+const CLIENT_ID   = '278656905631-ukc2h4ge8o7thg1uj312bjjhgknlqits.apps.googleusercontent.com';
+const SCOPES      = 'https://www.googleapis.com/auth/drive.appdata';
+const FILE_NAME   = 'japanotto_notes.json';
+const API_URL     = 'https://api.anthropic.com/v1/messages';
+const STORE_KEY   = 'japanotto_v2';
 
 let notes = [];
 let editingId = null;
 let showRomaji = false;
 let playQueue = [], playIdx = 0, isPaused = false, speed = 0.9;
 let voices = [];
+let accessToken = null;
+let driveFileId = null;
 
 // ── TOAST ──
 let toastTimer;
@@ -246,7 +250,7 @@ function toast(msg, type='') {
   clearTimeout(toastTimer);
   const el = document.getElementById('toast');
   el.textContent = msg; el.className = 'toast show ' + type;
-  toastTimer = setTimeout(() => el.className = 'toast', 2600);
+  toastTimer = setTimeout(() => el.className = 'toast', 2800);
 }
 
 // ── ROMAJI TOGGLE ──
@@ -257,7 +261,7 @@ function toggleRomaji() {
   renderList();
 }
 
-// ── STORAGE ──
+// ── LOCAL STORAGE ──
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function saveLocal() { localStorage.setItem(STORE_KEY, JSON.stringify(notes)); }
 function loadLocal() {
@@ -267,7 +271,133 @@ function loadLocal() {
   if (!notes.length) seedNotes();
 }
 
-// ── AI HELPERS ──
+// ── GOOGLE AUTH ──
+function signIn() {
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { toast('Sign in failed', 'err'); return; }
+      accessToken = resp.access_token;
+      localStorage.setItem('japanotto_token', accessToken);
+      setSignedIn(true);
+      toast('Signed in! Syncing…');
+      await syncDrive();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function signOut() {
+  accessToken = null;
+  driveFileId = null;
+  localStorage.removeItem('japanotto_token');
+  setSignedIn(false);
+  toast('Signed out');
+}
+
+function setSignedIn(yes) {
+  document.getElementById('authBtns').innerHTML = yes
+    ? `<button class="signout-btn" onclick="signOut()">Sign out</button>`
+    : `<button class="signin-btn" onclick="signIn()">Sign in with Google</button>`;
+  setSyncUI(yes ? 'synced' : '', yes ? 'Connected to Google Drive' : 'Not signed in');
+}
+
+function setSyncUI(state, label) {
+  document.getElementById('syncDot').className = 'sync-dot ' + state;
+  document.getElementById('syncLabel').textContent = label;
+}
+
+// ── DRIVE API ──
+async function driveRequest(method, url, body) {
+  const headers = { 'Authorization': 'Bearer ' + accessToken };
+  if (body && typeof body === 'string') headers['Content-Type'] = 'application/json';
+  const resp = await fetch(url, { method, headers, body: body || undefined });
+  if (resp.status === 401) { signOut(); throw new Error('Token expired'); }
+  return resp;
+}
+
+async function findDriveFile() {
+  const resp = await driveRequest('GET',
+    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'&fields=files(id,name)`
+  );
+  const data = await resp.json();
+  return data.files?.[0]?.id || null;
+}
+
+async function readDriveFile(fileId) {
+  const resp = await driveRequest('GET',
+    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
+  );
+  return await resp.json();
+}
+
+async function writeDriveFile(content) {
+  const blob = new Blob([JSON.stringify(content)], { type: 'application/json' });
+
+  if (driveFileId) {
+    // Update existing
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify(content)
+    });
+  } else {
+    // Create new in appDataFolder
+    const meta = JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] });
+    const form = new FormData();
+    form.append('metadata', new Blob([meta], { type: 'application/json' }));
+    form.append('file', blob);
+    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + accessToken },
+      body: form
+    });
+    const data = await resp.json();
+    driveFileId = data.id;
+  }
+}
+
+async function syncDrive() {
+  if (!accessToken) return;
+  setSyncUI('syncing', 'Syncing…');
+  try {
+    driveFileId = await findDriveFile();
+    if (driveFileId) {
+      const driveNotes = await readDriveFile(driveFileId);
+      if (Array.isArray(driveNotes)) {
+        // Merge: drive is source of truth, add any local-only notes
+        const driveIds = new Set(driveNotes.map(n => n.id));
+        const localOnly = notes.filter(n => !driveIds.has(n.id));
+        notes = [...driveNotes, ...localOnly];
+        saveLocal();
+        if (localOnly.length) await writeDriveFile(notes);
+      }
+    } else {
+      // First time — push local notes to Drive
+      await writeDriveFile(notes);
+    }
+    renderList();
+    setSyncUI('synced', 'Synced with Google Drive ✓');
+    toast('Synced ✓', 'ok');
+  } catch(e) {
+    setSyncUI('error', 'Sync failed');
+    toast('Sync failed', 'err');
+    console.error(e);
+  }
+}
+
+async function pushToDrive() {
+  if (!accessToken) return;
+  try {
+    await writeDriveFile(notes);
+    setSyncUI('synced', 'Saved to Drive ✓');
+  } catch(e) {
+    setSyncUI('error', 'Drive save failed');
+  }
+}
+
+// ── AI ──
 async function callAI(prompt) {
   const r = await fetch(API_URL, {
     method: 'POST',
@@ -280,61 +410,6 @@ async function callAI(prompt) {
   });
   const d = await r.json();
   return d.content?.filter(b => b.type === 'text').map(b => b.text).join('') || '';
-}
-
-async function autoCategory(jp, en) {
-  try {
-    const raw = await callAI(
-      `Given this Japanese note:
-JP: "${jp}"
-EN: "${en}"
-Pick exactly ONE category from: Vocab, Grammar, Phrase, Verb, Time, Direction, Expression, Greeting, Food, Place, Intro, Apology, Goodbye, Sentence, Particle
-Reply with ONLY the category word, nothing else.`
-    );
-    return raw.trim().split(/\s/)[0];
-  } catch { return 'Vocab'; }
-}
-
-async function aiEnhance() {
-  const jp = document.getElementById('fieldJp').value.trim();
-  const en = document.getElementById('fieldEn').value.trim();
-  if (!jp && !en) { toast('Type something first'); return; }
-
-  const btn = document.getElementById('btnAI');
-  btn.textContent = '…'; btn.disabled = true;
-  toast('AI is filling in…');
-
-  try {
-    const raw = await callAI(
-      `You help fill in a Japanese vocabulary note. Given what the user wrote, fill in any missing fields.
-JP: "${jp}"
-EN: "${en}"
-Current romaji: "${document.getElementById('fieldRo').value}"
-Current furigana: "${document.getElementById('fieldFuri').value}"
-Current category: "${document.getElementById('fieldCat').value}"
-
-Reply ONLY with a JSON object (no markdown):
-{
-  "jp": "Japanese text (keep original if fine)",
-  "ro": "romaji reading",
-  "furi": "hiragana reading of kanji only, blank if all hiragana already",
-  "en": "English meaning",
-  "cat": "ONE category from: Vocab, Grammar, Phrase, Verb, Time, Direction, Expression, Greeting, Food, Place, Intro, Apology, Goodbye, Sentence, Particle"
-}`
-    );
-    const clean = raw.replace(/```[\w]*\n?|```/g,'').trim();
-    const data = JSON.parse(clean);
-    if (data.jp) document.getElementById('fieldJp').value = data.jp;
-    if (data.ro) document.getElementById('fieldRo').value = data.ro;
-    if (data.furi) document.getElementById('fieldFuri').value = data.furi;
-    if (data.en) document.getElementById('fieldEn').value = data.en;
-    if (data.cat) document.getElementById('fieldCat').value = data.cat;
-    toast('✓ AI filled it in', 'ok');
-  } catch(e) {
-    toast('AI fill failed', 'err');
-  }
-
-  btn.textContent = '✦ AI Fill'; btn.disabled = false;
 }
 
 // ── VIEWS ──
@@ -365,17 +440,47 @@ function setCat(c) { document.getElementById('fieldCat').value = c; }
 
 // ── CRUD ──
 async function saveNote() {
-  const jp   = document.getElementById('fieldJp').value.trim();
-  const ro   = document.getElementById('fieldRo').value.trim();
-  const furi = document.getElementById('fieldFuri').value.trim();
-  const en   = document.getElementById('fieldEn').value.trim();
-  let   cat  = document.getElementById('fieldCat').value.trim();
+  let jp   = document.getElementById('fieldJp').value.trim();
+  let ro   = document.getElementById('fieldRo').value.trim();
+  let furi = document.getElementById('fieldFuri').value.trim();
+  let en   = document.getElementById('fieldEn').value.trim();
+  let cat  = document.getElementById('fieldCat').value.trim();
   if (!jp && !en) { toast('Add some text first!'); return; }
 
-  // auto-cat if blank
-  if (!cat) {
-    toast('AI picking category…');
-    cat = await autoCategory(jp, en);
+  const hasKanji = /[\u4e00-\u9faf\u3400-\u4dbf]/.test(jp);
+  const needsFill = !ro || !cat || (hasKanji && !furi);
+
+  if (needsFill) {
+    const btn = document.getElementById('btnSave');
+    btn.textContent = '…'; btn.disabled = true;
+    toast('AI filling in…');
+    try {
+      const raw = await callAI(
+        `Fill in missing fields for this Japanese vocabulary note.
+JP: "${jp}"
+EN: "${en}"
+Current romaji: "${ro}"
+Current furigana: "${furi}"
+Current category: "${cat}"
+
+Rules:
+- jp: keep exactly as the user wrote, never change it
+- ro: romaji reading (fill if missing)
+- furi: hiragana reading ONLY if jp contains kanji, otherwise leave blank
+- en: English meaning (keep if already filled, improve only if empty)
+- cat: ONE of: Vocab, Grammar, Phrase, Verb, Time, Direction, Expression, Greeting, Food, Place, Intro, Apology, Goodbye, Sentence, Particle
+
+Reply ONLY with JSON no markdown:
+{"jp":"...","ro":"...","furi":"...","en":"...","cat":"..."}`
+      );
+      const clean = raw.replace(/```[\w]*\n?|```/g,'').trim();
+      const data = JSON.parse(clean);
+      ro   = data.ro   || ro;
+      furi = data.furi || furi;
+      en   = data.en   || en;
+      cat  = data.cat  || cat || 'Vocab';
+    } catch { cat = cat || 'Vocab'; }
+    btn.textContent = 'Save'; btn.disabled = false;
   }
 
   if (editingId) {
@@ -384,20 +489,22 @@ async function saveNote() {
   } else {
     notes.unshift({ id: uid(), jp, ro, furi, en, cat, created: Date.now() });
   }
-  saveLocal(); showList(); toast('Saved ✓', 'ok');
+  saveLocal();
+  showList();
+  toast('Saved ✓', 'ok');
+  await pushToDrive();
 }
 
 async function deleteNote() {
   if (!editingId || !confirm('Delete this note?')) return;
   notes = notes.filter(n => n.id !== editingId);
   saveLocal(); showList();
+  await pushToDrive();
 }
 
 // ── RENDER ──
 function buildJpDisplay(note) {
-  // If there's furigana AND kanji in jp, wrap with <ruby>
-  if (note.furi && note.jp) {
-    // Simple: show jp with furigana as ruby over the whole thing
+  if (note.furi && /[\u4e00-\u9faf\u3400-\u4dbf]/.test(note.jp)) {
     return `<ruby>${note.jp}<rt>${note.furi}</rt></ruby>`;
   }
   return note.jp || note.en || '';
@@ -409,24 +516,18 @@ function renderList() {
     !q || [n.jp, n.ro, n.furi, n.en, n.cat].some(f => f?.toLowerCase().includes(q))
   );
   document.getElementById('noteCount').textContent = `${filtered.length} note${filtered.length !== 1 ? 's' : ''}`;
-
   const list = document.getElementById('notesList');
   if (!filtered.length) {
     list.innerHTML = `<div class="empty-state"><div class="big">📝</div><p>${q ? 'No notes match.' : 'No notes yet.\nTap ＋ to add your first word!'}</p></div>`;
     return;
   }
-
   list.innerHTML = filtered.map(n => {
     const isPlaying = playQueue[playIdx]?.id === n.id;
-    const jpHtml = buildJpDisplay(n);
-    const roHtml = n.ro
-      ? `<div class="note-ro${showRomaji ? '' : ' hidden'}">${n.ro}</div>`
-      : '';
     return `
     <div class="note-card${isPlaying ? ' playing' : ''}" id="card-${n.id}">
       <div class="note-card-body" onclick="showEditor('${n.id}')">
-        <div class="note-jp">${jpHtml}</div>
-        ${roHtml}
+        <div class="note-jp">${buildJpDisplay(n)}</div>
+        ${n.ro ? `<div class="note-ro${showRomaji ? '' : ' hidden'}">${n.ro}</div>` : ''}
         <div class="note-en">${n.en || ''}</div>
         ${n.cat ? `<span class="note-cat-tag">${n.cat}</span>` : ''}
       </div>
@@ -442,34 +543,24 @@ function loadVoices() { voices = window.speechSynthesis.getVoices(); }
 window.speechSynthesis.onvoiceschanged = loadVoices; loadVoices();
 function getVoice(lang) { return voices.find(v => v.lang.startsWith(lang)) || null; }
 
-function cleanForTTS(text) {
-  // strip furigana markers and brackets
-  return text.replace(/（[^）]*）|\([^)]*\)/g, '').trim();
-}
-
 function speakNote(note, onDone) {
   window.speechSynthesis.cancel();
   updatePlayerUI(note); renderList();
+  const jpText = (note.jp || '').replace(/（[^）]*）|\([^)]*\)/g, '');
   const parts = [];
-
-  const jpText = cleanForTTS(note.jp || '');
   if (jpText) {
     const u = new SpeechSynthesisUtterance(jpText);
     u.lang = 'ja-JP'; u.rate = speed * 0.82;
     const v = getVoice('ja'); if (v) u.voice = v;
     parts.push(u);
   }
-
   if (note.en) {
     const u2 = new SpeechSynthesisUtterance(note.en);
     u2.lang = 'en-US'; u2.rate = speed;
     const v2 = getVoice('en'); if (v2) u2.voice = v2;
     if (onDone) u2.onend = onDone;
     parts.push(u2);
-  } else if (onDone && parts.length) {
-    parts[parts.length - 1].onend = onDone;
-  }
-
+  } else if (onDone && parts.length) { parts[parts.length-1].onend = onDone; }
   parts.forEach(u => window.speechSynthesis.speak(u));
 }
 
@@ -496,7 +587,7 @@ function speakCurrent() {
   const jp = document.getElementById('fieldJp').value.trim();
   const en = document.getElementById('fieldEn').value.trim();
   if (!jp && !en) return;
-  playQueue = [{ id: '_p', jp, ro: '', furi: '', en, cat: '' }];
+  playQueue = [{ id:'_p', jp, ro:'', furi:'', en, cat:'' }];
   playIdx = 0; showPlayerBar(); speakNote(playQueue[0]);
 }
 
@@ -572,7 +663,19 @@ function seedNotes() {
   saveLocal();
 }
 
-loadLocal(); showList();
+// ── INIT ──
+loadLocal();
+showList();
+
+// Try restore token from last session
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('japanotto_token');
+  if (saved) {
+    accessToken = saved;
+    setSignedIn(true);
+    syncDrive();
+  }
+});
 </script>
 </body>
 </html>
