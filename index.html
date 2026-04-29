@@ -223,7 +223,7 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 <script>
 // ── CONFIG ──
 const CLIENT_ID   = '278656905631-ukc2h4ge8o7thg1uj312bjjhgknlqits.apps.googleusercontent.com';
-const SCOPES      = 'https://www.googleapis.com/auth/drive.appdata';
+const SCOPES      = 'https://www.googleapis.com/auth/drive.file';
 const FILE_NAME   = 'japanotto_notes.json';
 const API_URL     = 'https://api.anthropic.com/v1/messages';
 const STORE_KEY   = 'japanotto_v2';
@@ -311,7 +311,7 @@ async function driveRequest(method, url, body) {
 
 async function findDriveFile() {
   const resp = await driveRequest('GET',
-    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'&fields=files(id,name)`
+    `https://www.googleapis.com/drive/v3/files?spaces=drive&q=name='${FILE_NAME}'&fields=files(id,name)`
   );
   const data = await resp.json();
   return data.files?.[0]?.id || null;
@@ -333,7 +333,7 @@ async function writeDriveData(payload) {
       body
     });
   } else {
-    const meta = JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] });
+    const meta = JSON.stringify({ name: FILE_NAME, parents: ['root'] });
     const form = new FormData();
     form.append('metadata', new Blob([meta], { type: 'application/json' }));
     form.append('file', new Blob([body], { type: 'application/json' }));
@@ -373,9 +373,9 @@ async function syncDrive() {
     setSyncUI('synced', 'Synced with Google Drive ✓');
     toast('Synced ✓', 'ok');
   } catch(e) {
-    setSyncUI('error', 'Sync failed');
-    toast('Sync failed', 'err');
-    console.error(e);
+    setSyncUI('error', 'Sync failed: ' + (e.message || e));
+    toast('Sync failed: ' + (e.message || 'unknown'), 'err');
+    console.error('SYNC ERROR:', e);
   }
 }
 
