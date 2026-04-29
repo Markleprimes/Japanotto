@@ -82,6 +82,11 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 .cat-suggestions { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
 .cat-chip { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:none; color:var(--muted); font-family:'Syne Mono',monospace; font-size:0.65rem; cursor:pointer; text-transform:uppercase; }
 .cat-chip:active { background:var(--surface2); border-color:var(--accent2); color:var(--accent); }
+.cat-selector-wrap { display:flex; gap:8px; align-items:center; }
+.cat-selector-wrap select { flex:1; appearance:none; -webkit-appearance:none; cursor:pointer; color:var(--text); }
+.cat-selector-wrap select option { background:var(--surface2); color:var(--text); }
+.add-cat-btn { padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--accent); font-family:'Syne',sans-serif; font-size:0.8rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.add-cat-btn:active { border-color:var(--accent2); }
 .editor-footer { display:flex; gap:9px; padding:11px 14px; border-top:1px solid var(--border); flex-shrink:0; }
 .btn-full { flex:1; padding:12px; border-radius:11px; border:none; font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; }
 .btn-save { background:var(--accent2); color:#000; }
@@ -163,33 +168,20 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
     </div>
     <div class="editor-body">
       <div>
-        <div class="field-label">Japanese / Hiragana / Kanji</div>
-        <textarea class="field-input" id="fieldJp" rows="3" placeholder="あした　／　一緒　／　kanji ok too…"></textarea>
+        <div class="field-label">Japanese</div>
+        <textarea class="field-input" id="fieldJp" rows="3" placeholder="あした　／　一緒に…"></textarea>
       </div>
       <div>
-        <div class="field-label">Romaji <span class="ai-badge">AI auto</span></div>
-        <input class="field-input small" type="text" id="fieldRo" placeholder="leave blank, AI fills it…"/>
+        <div class="field-label">Meaning</div>
+        <textarea class="field-input small" id="fieldEn" rows="2" placeholder="tomorrow, together…"></textarea>
       </div>
       <div>
-        <div class="field-label">Furigana <span class="ai-badge">AI auto</span></div>
-        <input class="field-input small" type="text" id="fieldFuri" placeholder="leave blank, AI fills if kanji…"/>
-      </div>
-      <div>
-        <div class="field-label">Meaning / English</div>
-        <textarea class="field-input small" id="fieldEn" rows="2" placeholder="together, tomorrow…"></textarea>
-      </div>
-      <div>
-        <div class="field-label">Category <span class="ai-badge">AI auto</span></div>
-        <input class="field-input small" type="text" id="fieldCat" placeholder="leave blank, AI picks…"/>
-        <div class="cat-suggestions">
-          <button class="cat-chip" onclick="setCat('Vocab')">Vocab</button>
-          <button class="cat-chip" onclick="setCat('Grammar')">Grammar</button>
-          <button class="cat-chip" onclick="setCat('Phrase')">Phrase</button>
-          <button class="cat-chip" onclick="setCat('Verb')">Verb</button>
-          <button class="cat-chip" onclick="setCat('Time')">Time</button>
-          <button class="cat-chip" onclick="setCat('Direction')">Direction</button>
-          <button class="cat-chip" onclick="setCat('Expression')">Expression</button>
-          <button class="cat-chip" onclick="setCat('Greeting')">Greeting</button>
+        <div class="field-label">Category</div>
+        <div class="cat-selector-wrap">
+          <select class="field-input small" id="fieldCat">
+            <option value="">— pick a category —</option>
+          </select>
+          <button class="add-cat-btn" onclick="addCustomCat()">＋ New</button>
         </div>
       </div>
     </div>
@@ -332,22 +324,19 @@ async function readDriveFile(fileId) {
   return await resp.json();
 }
 
-async function writeDriveFile(content) {
-  const blob = new Blob([JSON.stringify(content)], { type: 'application/json' });
-
+async function writeDriveData(payload) {
+  const body = JSON.stringify(payload);
   if (driveFileId) {
-    // Update existing
     await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
       method: 'PATCH',
       headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify(content)
+      body
     });
   } else {
-    // Create new in appDataFolder
     const meta = JSON.stringify({ name: FILE_NAME, parents: ['appDataFolder'] });
     const form = new FormData();
     form.append('metadata', new Blob([meta], { type: 'application/json' }));
-    form.append('file', blob);
+    form.append('file', new Blob([body], { type: 'application/json' }));
     const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + accessToken },
@@ -357,6 +346,7 @@ async function writeDriveFile(content) {
     driveFileId = data.id;
   }
 }
+async function writeDriveFile(content) { await writeDriveData({ notes: content, customCats }); }
 
 async function syncDrive() {
   if (!accessToken) return;
@@ -364,17 +354,19 @@ async function syncDrive() {
   try {
     driveFileId = await findDriveFile();
     if (driveFileId) {
-      const driveNotes = await readDriveFile(driveFileId);
-      if (Array.isArray(driveNotes)) {
-        // Merge: drive is source of truth, add any local-only notes
-        const driveIds = new Set(driveNotes.map(n => n.id));
-        const localOnly = notes.filter(n => !driveIds.has(n.id));
-        notes = [...driveNotes, ...localOnly];
-        saveLocal();
-        if (localOnly.length) await writeDriveFile(notes);
-      }
+      const raw = await readDriveFile(driveFileId);
+      const driveNotes = Array.isArray(raw) ? raw : (raw.notes || []);
+      const driveCats  = Array.isArray(raw) ? [] : (raw.customCats || []);
+      // Merge custom cats
+      driveCats.forEach(c => { if (!customCats.includes(c)) customCats.push(c); });
+      saveCustomCats();
+      // Merge notes
+      const driveIds = new Set(driveNotes.map(n => n.id));
+      const localOnly = notes.filter(n => !driveIds.has(n.id));
+      notes = [...driveNotes, ...localOnly];
+      saveLocal();
+      if (localOnly.length) await writeDriveFile(notes);
     } else {
-      // First time — push local notes to Drive
       await writeDriveFile(notes);
     }
     renderList();
@@ -390,7 +382,7 @@ async function syncDrive() {
 async function pushToDrive() {
   if (!accessToken) return;
   try {
-    await writeDriveFile(notes);
+    await writeDriveData({ notes, customCats });
     setSyncUI('synced', 'Saved to Drive ✓');
   } catch(e) {
     setSyncUI('error', 'Drive save failed');
@@ -428,15 +420,11 @@ function showEditor(id) {
   const n = id ? notes.find(x => x.id === id) : null;
   document.getElementById('editorLabel').textContent = id ? 'Edit Note' : 'New Note';
   document.getElementById('fieldJp').value   = n?.jp   || '';
-  document.getElementById('fieldRo').value   = n?.ro   || '';
-  document.getElementById('fieldFuri').value = n?.furi || '';
   document.getElementById('fieldEn').value   = n?.en   || '';
-  document.getElementById('fieldCat').value  = n?.cat  || '';
+  populateCatSelect(n?.cat || '');
   document.getElementById('btnDelete').style.display = id ? 'block' : 'none';
   document.getElementById('fieldJp').focus();
 }
-
-function setCat(c) { document.getElementById('fieldCat').value = c; }
 
 // ── CRUD ──
 async function saveNote() {
@@ -665,6 +653,7 @@ function seedNotes() {
 
 // ── INIT ──
 loadLocal();
+loadCustomCats();
 showList();
 
 // Try restore token from last session
