@@ -427,56 +427,57 @@ function showEditor(id) {
   document.getElementById('fieldJp').focus();
 }
 
+// ── CATEGORIES ──
+const DEFAULT_CATS = ['Vocab','Grammar','Phrase','Verb','Time','Direction','Expression','Greeting','Food','Place','Intro','Apology','Goodbye','Sentence','Particle'];
+
+function loadCustomCats() {
+  try { customCats = JSON.parse(localStorage.getItem('japanotto_cats')) || []; } catch { customCats = []; }
+}
+
+function saveCustomCats() {
+  localStorage.setItem('japanotto_cats', JSON.stringify(customCats));
+}
+
+function allCats() {
+  return [...DEFAULT_CATS, ...customCats.filter(c => !DEFAULT_CATS.includes(c))];
+}
+
+function populateCatSelect(selected) {
+  const sel = document.getElementById('fieldCat');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— pick a category —</option>';
+  allCats().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if (c === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function addCustomCat() {
+  const name = prompt('New category name:');
+  if (!name || !name.trim()) return;
+  const cat = name.trim();
+  if (!customCats.includes(cat) && !DEFAULT_CATS.includes(cat)) {
+    customCats.push(cat);
+    saveCustomCats();
+    pushToDrive();
+  }
+  populateCatSelect(cat);
+}
+
 // ── CRUD ──
 async function saveNote() {
-  let jp   = document.getElementById('fieldJp').value.trim();
-  let ro   = document.getElementById('fieldRo').value.trim();
-  let furi = document.getElementById('fieldFuri').value.trim();
-  let en   = document.getElementById('fieldEn').value.trim();
-  let cat  = document.getElementById('fieldCat').value.trim();
+  const jp  = document.getElementById('fieldJp').value.trim();
+  const en  = document.getElementById('fieldEn').value.trim();
+  const cat = document.getElementById('fieldCat').value.trim();
   if (!jp && !en) { toast('Add some text first!'); return; }
-
-  const hasKanji = /[\u4e00-\u9faf\u3400-\u4dbf]/.test(jp);
-  const needsFill = !ro || !cat || (hasKanji && !furi);
-
-  if (needsFill) {
-    const btn = document.getElementById('btnSave');
-    btn.textContent = '…'; btn.disabled = true;
-    toast('AI filling in…');
-    try {
-      const raw = await callAI(
-        `Fill in missing fields for this Japanese vocabulary note.
-JP: "${jp}"
-EN: "${en}"
-Current romaji: "${ro}"
-Current furigana: "${furi}"
-Current category: "${cat}"
-
-Rules:
-- jp: keep exactly as the user wrote, never change it
-- ro: romaji reading (fill if missing)
-- furi: hiragana reading ONLY if jp contains kanji, otherwise leave blank
-- en: English meaning (keep if already filled, improve only if empty)
-- cat: ONE of: Vocab, Grammar, Phrase, Verb, Time, Direction, Expression, Greeting, Food, Place, Intro, Apology, Goodbye, Sentence, Particle
-
-Reply ONLY with JSON no markdown:
-{"jp":"...","ro":"...","furi":"...","en":"...","cat":"..."}`
-      );
-      const clean = raw.replace(/```[\w]*\n?|```/g,'').trim();
-      const data = JSON.parse(clean);
-      ro   = data.ro   || ro;
-      furi = data.furi || furi;
-      en   = data.en   || en;
-      cat  = data.cat  || cat || 'Vocab';
-    } catch { cat = cat || 'Vocab'; }
-    btn.textContent = 'Save'; btn.disabled = false;
-  }
-
+  if (!cat) { toast('Pick a category!'); return; }
   if (editingId) {
     const i = notes.findIndex(n => n.id === editingId);
-    if (i !== -1) notes[i] = { ...notes[i], jp, ro, furi, en, cat };
+    if (i !== -1) notes[i] = { ...notes[i], jp, en, cat };
   } else {
-    notes.unshift({ id: uid(), jp, ro, furi, en, cat, created: Date.now() });
+    notes.unshift({ id: uid(), jp, ro: '', furi: '', en, cat, created: Date.now() });
   }
   saveLocal();
   showList();
