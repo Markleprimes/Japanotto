@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Japanotto</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0d0d0d; --surface: #161616; --surface2: #1e1e1e;
+  --border: #2a2a2a; --accent: #e8d5a3; --accent2: #c9a84c;
+  --text: #f0ece4; --muted: #666; --danger: #c0392b; --playing: #4ade80;
+}
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow: hidden; }
+.app { display: flex; flex-direction: column; height: 100dvh; max-width: 480px; margin: 0 auto; position: relative; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 10px; }
+.header-title { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; white-space: nowrap; }
+.header-title span { color: var(--accent2); }
+.header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.icon-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+.icon-btn:hover { background: var(--surface2); border-color: var(--accent); }
+.play-all-btn { padding: 7px 12px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--accent); font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; cursor: pointer; transition: all 0.15s; text-transform: uppercase; white-space: nowrap; }
+.play-all-btn:hover { border-color: var(--accent2); }
+.sync-bar { display: flex; align-items: center; gap: 8px; padding: 7px 20px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 0.68rem; font-family: 'Syne Mono', monospace; color: var(--muted); flex-shrink: 0; }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.3s; }
+.sync-dot.synced { background: var(--playing); }
+.sync-dot.syncing { background: #60a5fa; animation: blink 1s ease-in-out infinite; }
+.sync-dot.error { background: var(--danger); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.view.active { display: flex; }
+.search-wrap { padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.search-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: 'Syne Mono', monospace; font-size: 0.85rem; outline: none; transition: border-color 0.15s; }
+.search-input:focus { border-color: var(--accent2); }
+.search-input::placeholder { color: var(--muted); }
+.notes-list { flex: 1; overflow-y: auto; padding: 8px 0 100px; -webkit-overflow-scrolling: touch; }
+.note-card { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); gap: 14px; }
+.note-card.playing { background: #1a2010; border-left: 3px solid var(--playing); }
+.note-card-body { flex: 1; min-width: 0; cursor: pointer; }
+.note-card-title { font-family: 'Noto Sans JP', sans-serif; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; }
+.note-card-sub { font-size: 0.7rem; color: var(--muted); margin-top: 3px; font-family: 'Syne Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-card-play { width: 36px; height: 36px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); color: var(--accent); font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
+.note-card.playing .note-card-play { background: var(--playing); color: #000; border-color: var(--playing); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state .big { font-size: 2.5rem; margin-bottom: 12px; }
+.empty-state p { font-size: 0.8rem; line-height: 1.6; font-family: 'Syne Mono', monospace; }
+.editor-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.back-btn { background: none; border: none; color: var(--accent); font-size: 1.1rem; cursor: pointer; padding: 4px; }
+.editor-header-title { flex: 1; font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-family: 'Syne Mono', monospace; }
+.editor-body { flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 12px; overflow-y: auto; }
+.field-label { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-family: 'Syne Mono', monospace; }
+.field-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 1.05rem; outline: none; resize: none; transition: border-color 0.15s; line-height: 1.6; }
+.field-input:focus { border-color: var(--accent2); }
+.field-input::placeholder { color: var(--muted); font-size: 0.85rem; }
+.field-input.small { font-family: 'Syne Mono', monospace; font-size: 0.85rem; }
+.editor-footer { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.btn-full { flex: 1; padding: 13px; border-radius: 12px; border: none; font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-save { background: var(--accent2); color: #000; }
+.btn-save:hover { background: var(--accent); }
+.btn-delete { background: var(--surface2); color: var(--danger); border: 1px solid var(--border); flex: 0 0 48px; font-size: 1rem; border-radius: 12px; cursor: pointer; }
+.player-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px 24px; display: none; flex-direction: column; gap: 10px; z-index: 100; }
+.player-bar.visible { display: flex; }
+.player-now { display: flex; align-items: center; gap: 12px; }
+.player-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--playing); flex-shrink: 0; animation: blink 1.2s ease-in-out infinite; }
+.player-text { flex: 1; min-width: 0; }
+.player-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-en { font-size: 0.65rem; color: var(--muted); font-family: 'Syne Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.player-controls { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.ctrl-btn { background: none; border: none; color: var(--text); font-size: 1.3rem; cursor: pointer; padding: 6px; opacity: 0.7; }
+.ctrl-btn.main { width: 46px; height: 46px; border-radius: 50%; background: var(--accent2); color: #000; font-size: 1.1rem; opacity: 1; display: flex; align-items: center; justify-content: center; }
+.speed-row { display: flex; gap: 8px; justify-content: center; }
+.speed-chip { padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: 'Syne Mono', monospace; font-size: 0.68rem; cursor: pointer; }
+.speed-chip.active { background: var(--surface2); border-color: var(--accent2); color: var(--accent); }
+.fab { position: fixed; bottom: 24px; right: calc(50% - 220px); width: 56px; height: 56px; border-radius: 50%; background: var(--accent2); color: #000; font-size: 1.6rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(200,168,76,0.35); z-index: 99; }
+.fab.hidden { display: none; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 0.78rem; font-family: 'Syne Mono', monospace; color: var(--text); z-index: 200; transition: transform 0.3s ease; white-space: nowrap; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok { border-color: var(--playing); color: var(--playing); }
+.toast.err { border-color: var(--danger); color: var(--danger); }
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-title">Japa<span>notto</span></div>
+    <div class="header-actions">
+      <button class="play-all-btn" onclick="playAll()">▶ All</button>
+      <button class="icon-btn" id="syncBtn" onclick="syncDrive()" title="Sync Google Drive">☁</button>
+      <button class="icon-btn" onclick="showEditor(null)">＋</button>
+    </div>
+  </div>
+  <div class="sync-bar">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncLabel">Tap ☁ to sync with Google Drive</span>
+  </div>
+
+  <!-- LIST -->
+  <div class="view active" id="viewList">
+    <div class="search-wrap">
+      <input class="search-input" type="text" id="searchInput" placeholder="Search notes…" oninput="renderList()" autocomplete="off"/>
+    </div>
+    <div class="notes-list" id="notesList"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="view" id="viewEditor">
+    <div class="editor-header">
+      <button class="back-btn" onclick="showList()">←</button>
+      <div class="editor-header-title" id="editorLabel">New Note</div>
+      <button class="icon-btn" onclick="speakCurrent()">🔊</button>
+    </div>
+    <div class="editor-body">
+      <div><div class="field-label">Japanese / Main Text</div><textarea class="field-input" id="fieldJp" rows="3" placeholder="あした、一緒に…"></textarea></div>
+      <div><div class="field-label">Reading / Romaji</div><input class="field-input small" type="text" id="fieldRo" placeholder="ashita, issho ni…"/></div>
+      <div><div class="field-label">Meaning / English</div><textarea class="field-input small" id="fieldEn" rows="2" placeholder="tomorrow, together…"></textarea></div>
+      <div><div class="field-label">Category (optional)</div><input class="field-input small" type="text" id="fieldCat" placeholder="Vocab, Grammar, Phrase…"/></div>
+    </div>
+    <div class="editor-footer">
+      <button class="btn-delete" id="btnDelete" onclick="deleteNote()" style="display:none">🗑</button>
+      <button class="btn-full btn-save" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+
+  <!-- PLAYER -->
+  <div class="player-bar" id="playerBar">
+    <div class="player-now">
+      <div class="player-dot"></div>
+      <div class="player-text">
+        <div class="player-jp" id="playerJp">—</div>
+        <div class="player-en" id="playerEn">—</div>
+      </div>
+      <button class="icon-btn" onclick="stopAll()" style="color:var(--danger);font-size:0.8rem">✕</button>
+    </div>
+    <div class="player-controls">
+      <button class="ctrl-btn" onclick="playPrevItem()">⏮</button>
+      <button class="ctrl-btn main" id="btnPause" onclick="togglePause()">⏸</button>
+      <button class="ctrl-btn" onclick="playNextItem()">⏭</button>
+    </div>
+    <div class="speed-row">
+      <button class="speed-chip" onclick="setSpeed(0.7,this)">Slow</button>
+      <button class="speed-chip active" onclick="setSpeed(0.9,this)">Normal</button>
+      <button class="speed-chip" onclick="setSpeed(1.2,this)">Fast</button>
+    </div>
+  </div>
+</div>
+<button class="fab" id="fab" onclick="showEditor(null)">＋</button>
+<div class="toast" id="toast"></div>
+
+<script>
+const DRIVE_FILE = 'japanotto_notes.json';
+const STORE_KEY  = 'japanotto_v1';
+const API_URL    = 'https://api.anthropic.com/v1/messages';
+const MCP_DRIVE  = 'https://gdrivemcp.googleapis.com/mcp/v1';
+
+let notes = [], editingId = null;
+let playQueue = [], playIdx = 0, isPaused = false, speed = 0.9;
+let voices = [];
+
+// ── TOAST ──
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast', 2800);
+}
+
+// ── SYNC UI ──
+function setSyncUI(state, label) {
+  document.getElementById('syncDot').className = 'sync-dot ' + state;
+  document.getElementById('syncLabel').textContent = label;
+}
+
+// ── LOCAL ──
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function saveLocal() { localStorage.setItem(STORE_KEY, JSON.stringify(notes)); }
+
+function loadLocal() {
+  try { notes = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { notes = []; }
+  if (!notes.length) seedNotes();
+}
+
+// ── DRIVE ──
+async function callAPI(systemPrompt, userMsg) {
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMsg }],
+      mcp_servers: [{ type: 'url', url: MCP_DRIVE, name: 'gdrive' }]
+    })
+  });
+  const data = await r.json();
+  return data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || '';
+}
+
+async function syncDrive() {
+  setSyncUI('syncing', 'Connecting to Google Drive…');
+  document.getElementById('syncBtn').textContent = '⏳';
+  try {
+    const text = await callAPI(
+      `You manage Google Drive. Find a file named "${DRIVE_FILE}". 
+      Reply ONLY with valid JSON, no markdown, no extra text:
+      If found: {"found":true,"content":[...array of note objects...]}
+      If not found: {"found":false}`,
+      `Find "${DRIVE_FILE}" in Google Drive and return its JSON content.`
+    );
+    const clean = text.replace(/```[\w]*\n?|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    if (parsed.found && Array.isArray(parsed.content)) {
+      // Merge drive + local
+      const driveIds = new Set(parsed.content.map(n => n.id));
+      const localOnly = notes.filter(n => !driveIds.has(n.id));
+      notes = [...parsed.content, ...localOnly];
+      saveLocal();
+      renderList();
+      setSyncUI('synced', `Synced · ${notes.length} notes`);
+      toast('✓ Synced from Google Drive', 'ok');
+      if (localOnly.length) await pushToDrive(); // push any local-only notes up
+    } else {
+      await pushToDrive();
+    }
+  } catch (e) {
+    setSyncUI('error', 'Sync failed');
+    toast('Sync failed — try again', 'err');
+    console.error(e);
+  }
+  document.getElementById('syncBtn').textContent = '☁';
+}
+
+async function pushToDrive() {
+  setSyncUI('syncing', 'Saving to Google Drive…');
+  try {
+    await callAPI(
+      `You manage Google Drive files. Create or overwrite a file named "${DRIVE_FILE}" with the JSON content the user provides. Reply only with: {"ok":true}`,
+      `Save this to Google Drive as "${DRIVE_FILE}":\n${JSON.stringify(notes)}`
+    );
+    setSyncUI('synced', `Saved to Google Drive · ${notes.length} notes`);
+    toast('✓ Saved to Google Drive', 'ok');
+  } catch {
+    setSyncUI('error', 'Save to Drive failed');
+    toast('Drive save failed', 'err');
+  }
+}
+
+// ── SEED ──
+function seedNotes() {
+  const s = [
+    {jp:"あした",ro:"ashita",en:"tomorrow",cat:"Time"},
+    {jp:"一緒（いっしょ）",ro:"issho",en:"together",cat:"Common"},
+    {jp:"今度（こんど）",ro:"kondo",en:"next time",cat:"Time"},
+    {jp:"また",ro:"mata",en:"again / see you",cat:"Expression"},
+    {jp:"はじめまして",ro:"hajimemashite",en:"nice to meet you",cat:"Greeting"},
+    {jp:"こと",ro:"koto",en:"intangible things, ideas, events, abstractions",cat:"Grammar"},
+    {jp:"もの",ro:"mono",en:"tangible things, physical objects",cat:"Grammar"},
+    {jp:"きれいな人",ro:"kirei na hito",en:"beautiful person",cat:"Vocab"},
+    {jp:"変わらない",ro:"kawaranai",en:"does not change",cat:"Verb"},
+    {jp:"連絡先を教えてもいい",ro:"renraku saki wo oshiete mo ii",en:"please give me your contact info",cat:"Phrase"},
+    {jp:"必要（ひつよう）",ro:"hitsuyou",en:"necessary, needed",cat:"Vocab"},
+    {jp:"家族（かぞく）",ro:"kazoku",en:"family",cat:"Vocab"},
+    {jp:"興味（きょうみ）",ro:"kyoumi",en:"interest in something",cat:"Vocab"},
+    {jp:"いくらですか",ro:"ikura desu ka",en:"how much is it?",cat:"Phrase"},
+    {jp:"〜たい",ro:"~tai",en:"want to do something",cat:"Grammar"},
+    {jp:"〜ない",ro:"~nai",en:"negative verb ending",cat:"Grammar"},
+    {jp:"〜て",ro:"~te",en:"te-form, connects actions",cat:"Grammar"},
+    {jp:"〜よう・しょう",ro:"~you / ~shou",en:"let's, shall we, volitional form",cat:"Grammar"},
+    {jp:"注文おねがいします",ro:"chuumon onegaishimasu",en:"order please",cat:"Restaurant"},
+    {jp:"定食（ていしょく）",ro:"teishoku",en:"Japanese-style set meal",cat:"Food"},
+    {jp:"いっぱい",ro:"ippai",en:"full after eating",cat:"Food"},
+    {jp:"すいた",ro:"suita",en:"hungry",cat:"Food"},
+    {jp:"まっすぐ",ro:"massugu",en:"straight ahead",cat:"Direction"},
+    {jp:"みぎ（右）",ro:"migi",en:"right",cat:"Direction"},
+    {jp:"ひだり（左）",ro:"hidari",en:"left",cat:"Direction"},
+    {jp:"うえ（上）",ro:"ue",en:"up, above",cat:"Direction"},
+    {jp:"した（下）",ro:"shita",en:"down, below",cat:"Direction"},
+    {jp:"なか（中）",ro:"naka",en:"inside",cat:"Direction"},
+    {jp:"そと（外）",ro:"soto",en:"outside",cat:"Direction"},
+    {jp:"出口（でぐち）",ro:"deguchi",en:"exit",cat:"Place"},
+    {jp:"先週（せんしゅう）",ro:"senshuu",en:"last week",cat:"Time"},
+    {jp:"来月（らいがつ）",ro:"raigatsu",en:"next month",cat:"Time"},
+    {jp:"すぐ",ro:"sugu",en:"soon",cat:"Time"},
+    {jp:"だけ",ro:"dake",en:"just, only",cat:"Grammar"},
+    {jp:"せめて",ro:"semete",en:"at least",cat:"Expression"},
+    {jp:"かな",ro:"kana",en:"I wonder, should I?",cat:"Expression"},
+    {jp:"借りてもいいですか",ro:"karite mo ii desu ka",en:"may I borrow it?",cat:"Phrase"},
+    {jp:"またね",ro:"mata ne",en:"see you later, casual",cat:"Goodbye"},
+    {jp:"じゃあね",ro:"jaa ne",en:"bye, see ya",cat:"Goodbye"},
+    {jp:"どうも",ro:"doumo",en:"thanks, very casual",cat:"Expression"},
+    {jp:"大変申し訳ございません",ro:"taihen moushiwake gozaimasen",en:"I am truly deeply sorry, very formal",cat:"Apology"},
+    {jp:"よろしくお願いします",ro:"yoroshiku onegaishimasu",en:"nice to meet you, looking forward to it",cat:"Intro"},
+    {jp:"日本のすべてが大好きです",ro:"Nihon no subete ga daisuki desu",en:"I love everything about Japan",cat:"Intro"},
+    {jp:"独学で日本語を勉強しています",ro:"Dokugaku de Nihongo wo benkyou shite imasu",en:"I am studying Japanese on my own",cat:"Intro"},
+  ];
+  notes = s.map(n => ({ id: uid(), ...n, created: Date.now() }));
+  saveLocal();
+}
+
+// ── VIEWS ──
+function showList() {
+  document.getElementById('viewList').classList.add('active');
+  document.getElementById('viewEditor').classList.remove('active');
+  document.getElementById('fab').classList.remove('hidden');
+  renderList();
+}
+
+function showEditor(id) {
+  editingId = id;
+  document.getElementById('viewList').classList.remove('active');
+  document.getElementById('viewEditor').classList.add('active');
+  document.getElementById('fab').classList.add('hidden');
+  const note = id ? notes.find(n => n.id === id) : null;
+  document.getElementById('editorLabel').textContent = id ? 'Edit Note' : 'New Note';
+  document.getElementById('fieldJp').value = note?.jp || '';
+  document.getElementById('fieldRo').value = note?.ro || '';
+  document.getElementById('fieldEn').value = note?.en || '';
+  document.getElementById('fieldCat').value = note?.cat || '';
+  document.getElementById('btnDelete').style.display = id ? 'block' : 'none';
+  document.getElementById('fieldJp').focus();
+}
+
+// ── CRUD ──
+async function saveNote() {
+  const jp = document.getElementById('fieldJp').value.trim();
+  const ro = document.getElementById('fieldRo').value.trim();
+  const en = document.getElementById('fieldEn').value.trim();
+  const cat = document.getElementById('fieldCat').value.trim();
+  if (!jp && !en) { toast('Add some text first!'); return; }
+  if (editingId) {
+    const i = notes.findIndex(n => n.id === editingId);
+    if (i !== -1) notes[i] = { ...notes[i], jp, ro, en, cat };
+  } else {
+    notes.unshift({ id: uid(), jp, ro, en, cat, created: Date.now() });
+  }
+  saveLocal(); showList(); toast('Saved locally…');
+  await pushToDrive();
+}
+
+async function deleteNote() {
+  if (!editingId || !confirm('Delete this note?')) return;
+  notes = notes.filter(n => n.id !== editingId);
+  saveLocal(); showList();
+  await pushToDrive();
+}
+
+// ── RENDER ──
+function renderList() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = notes.filter(n => !q || [n.jp,n.ro,n.en,n.cat].some(f => f?.toLowerCase().includes(q)));
+  const list = document.getElementById('notesList');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="big">📝</div><p>${q?'No notes match.':'No notes yet.\nTap ＋ to add your first word!'}</p></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(n => `
+    <div class="note-card ${playQueue[playIdx]?.id===n.id?'playing':''}" id="card-${n.id}">
+      <div class="note-card-body" onclick="showEditor('${n.id}')">
+        <div class="note-card-title">${n.jp||n.en}</div>
+        <div class="note-card-sub">${n.ro?n.ro+' · ':''}${n.en||''}</div>
+      </div>
+      <button class="note-card-play" onclick="playSingle('${n.id}')">
+        ${playQueue[playIdx]?.id===n.id?'🔊':'▶'}
+      </button>
+    </div>`).join('');
+}
+
+// ── TTS ──
+function loadVoices() { voices = window.speechSynthesis.getVoices(); }
+window.speechSynthesis.onvoiceschanged = loadVoices; loadVoices();
+function getVoice(lang) { return voices.find(v => v.lang.startsWith(lang)) || null; }
+
+function speakNote(note, onDone) {
+  window.speechSynthesis.cancel();
+  updatePlayerUI(note); renderList();
+  const jpText = note.jp.replace(/（[^）]*）|\([^)]*\)/g,'');
+  const parts = [];
+  if (jpText) {
+    const u = new SpeechSynthesisUtterance(jpText);
+    u.lang='ja-JP'; u.rate=speed*0.85;
+    const v=getVoice('ja'); if(v) u.voice=v;
+    parts.push(u);
+  }
+  if (note.en) {
+    const u2 = new SpeechSynthesisUtterance(note.en);
+    u2.lang='en-US'; u2.rate=speed;
+    const v2=getVoice('en'); if(v2) u2.voice=v2;
+    if (onDone) u2.onend=onDone;
+    parts.push(u2);
+  } else if (onDone && parts.length) { parts[parts.length-1].onend=onDone; }
+  parts.forEach(u => window.speechSynthesis.speak(u));
+}
+
+function playSingle(id) {
+  const note=notes.find(n=>n.id===id); if(!note) return;
+  playQueue=[note]; playIdx=0; isPaused=false;
+  showPlayerBar(); speakNote(note);
+}
+
+function playAll() {
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  playQueue=notes.filter(n=>!q||[n.jp,n.ro,n.en,n.cat].some(f=>f?.toLowerCase().includes(q)));
+  if(!playQueue.length) return;
+  playIdx=0; isPaused=false; showPlayerBar(); playFromIdx(0);
+}
+
+function playFromIdx(idx) {
+  if (isPaused||idx>=playQueue.length) { if(idx>=playQueue.length) stopAll(); return; }
+  playIdx=idx;
+  speakNote(playQueue[idx], ()=>{ if(!isPaused) setTimeout(()=>playFromIdx(idx+1),700); });
+}
+
+function speakCurrent() {
+  const jp=document.getElementById('fieldJp').value.trim();
+  const en=document.getElementById('fieldEn').value.trim();
+  if(!jp&&!en) return;
+  playQueue=[{id:'_p',jp,ro:'',en,cat:''}]; playIdx=0;
+  showPlayerBar(); speakNote(playQueue[0]);
+}
+
+function togglePause() {
+  if (window.speechSynthesis.speaking&&!isPaused) {
+    isPaused=true; window.speechSynthesis.pause();
+    document.getElementById('btnPause').textContent='▶';
+  } else if (isPaused) {
+    isPaused=false; window.speechSynthesis.resume();
+    document.getElementById('btnPause').textContent='⏸';
+    if(!window.speechSynthesis.speaking) playFromIdx(playIdx);
+  }
+}
+
+function playNextItem() { isPaused=false; document.getElementById('btnPause').textContent='⏸'; if(playIdx<playQueue.length-1) playFromIdx(playIdx+1); }
+function playPrevItem() { isPaused=false; document.getElementById('btnPause').textContent='⏸'; if(playIdx>0) playFromIdx(playIdx-1); }
+function stopAll() { window.speechSynthesis.cancel(); isPaused=false; playQueue=[]; playIdx=0; document.getElementById('playerBar').classList.remove('visible'); document.getElementById('btnPause').textContent='⏸'; renderList(); }
+function setSpeed(s,el) { speed=s; document.querySelectorAll('.speed-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); }
+function showPlayerBar() { document.getElementById('playerBar').classList.add('visible'); }
+function updatePlayerUI(note) { document.getElementById('playerJp').textContent=note.jp||'—'; document.getElementById('playerEn').textContent=(note.ro?note.ro+' · ':'')+( note.en||''); }
+
+loadLocal(); showList();
+</script>
+</body>
+</html>
