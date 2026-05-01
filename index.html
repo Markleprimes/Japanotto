@@ -284,7 +284,13 @@ function signOut() {
   accessToken = null;
   driveFileId = null;
   localStorage.removeItem('japanotto_token');
+  localStorage.removeItem('japanotto_v2');
+  localStorage.removeItem('japanotto_cats');
+  localStorage.removeItem('japanotto_romaji');
+  notes = [];
+  customCats = [];
   setSignedIn(false);
+  renderList();
   toast('Signed out');
 }
 
