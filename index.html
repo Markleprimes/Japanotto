@@ -245,16 +245,20 @@ let kuroshiro = null;
 let kuroshiroReady = false;
 
 async function initKuroshiro() {
-  try {
-    kuroshiro = new Kuroshiro();
-    await kuroshiro.init(new KuromojiAnalyzer({
-      dictPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict'
-    }));
-    kuroshiroReady = true;
-    console.log('Kuroshiro ready');
-  } catch(e) {
-    console.warn('Kuroshiro failed to load:', e);
-  }
+  // Run in background, never block UI
+  setTimeout(async () => {
+    try {
+      kuroshiro = new Kuroshiro();
+      await kuroshiro.init(new KuromojiAnalyzer({
+        dictPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict'
+      }));
+      kuroshiroReady = true;
+      console.log('Kuroshiro ready');
+    } catch(e) {
+      kuroshiroReady = false;
+      console.warn('Kuroshiro failed:', e);
+    }
+  }, 100);
 }
 
 async function addFurigana(text) {
@@ -514,13 +518,12 @@ async function saveNote() {
   const hasKanji = /[一-龯㐀-䶿]/.test(jp);
   let furi = '';
   let ro = '';
-  if (hasKanji && kuroshiroReady) {
-    furi = await getRomaji(jp); // will be used as romaji
-    ro   = furi;
-    furi = await addFurigana(jp); // HTML ruby string
-  } else if (kuroshiroReady) {
-    ro = await getRomaji(jp);
-  }
+  try {
+    if (kuroshiroReady) {
+      ro   = await getRomaji(jp);
+      furi = hasKanji ? await addFurigana(jp) : '';
+    }
+  } catch(e) { console.warn('kuroshiro convert failed', e); }
 
   btn.textContent = 'Save'; btn.disabled = false;
 
