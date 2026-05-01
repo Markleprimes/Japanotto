@@ -476,14 +476,13 @@ async function saveNote() {
 
     // No external library - save jp as-is, furigana blank for now
   const hasKanji = /[一-龯㐀-䶿]/.test(jp);
-  const furi = '';
   const ro = '';
 
   if (editingId) {
     const i = notes.findIndex(n => n.id === editingId);
-    if (i !== -1) notes[i] = { ...notes[i], jp, furi, ro, en, cat };
+    if (i !== -1) notes[i] = { ...notes[i], jp, ro, en, cat };
   } else {
-    notes.unshift({ id: uid(), jp, furi, ro, en, cat, created: Date.now() });
+    notes.unshift({ id: uid(), jp, ro, en, cat, created: Date.now() });
   }
   saveLocal();
   showList();
@@ -500,9 +499,8 @@ async function deleteNote() {
 
 // ── RENDER ──
 function buildJpDisplay(note) {
-  if (note.furi && note.furi.includes('<ruby>')) {
-    return note.furi;
-  }
+  return note.jp || note.en || '';
+}
   if (note.furi && /[一-龯㐀-䶿]/.test(note.jp)) {
     return `<ruby>${note.jp}<rt>${note.furi}</rt></ruby>`;
   }
