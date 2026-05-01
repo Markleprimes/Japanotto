@@ -261,7 +261,6 @@ function loadLocal() {
   try { notes = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { notes = []; }
   showRomaji = localStorage.getItem('japanotto_romaji') === '1';
   document.getElementById('roTogglePill').className = 'toggle-pill' + (showRomaji ? ' on' : '');
-  if (!notes.length) seedNotes();
 }
 
 // ── GOOGLE AUTH ──
@@ -601,57 +600,6 @@ function updatePlayerUI(n) {
   document.getElementById('playerEn').textContent = (n.ro && showRomaji ? n.ro + ' · ' : '') + (n.en || '');
 }
 
-// ── SEED ──
-function seedNotes() {
-  const s = [
-    {jp:"あした",ro:"ashita",furi:"",en:"tomorrow",cat:"Time"},
-    {jp:"一緒",ro:"issho",furi:"いっしょ",en:"together",cat:"Common"},
-    {jp:"今度",ro:"kondo",furi:"こんど",en:"next time",cat:"Time"},
-    {jp:"また",ro:"mata",furi:"",en:"again / see you",cat:"Expression"},
-    {jp:"はじめまして",ro:"hajimemashite",furi:"",en:"nice to meet you",cat:"Greeting"},
-    {jp:"こと",ro:"koto",furi:"",en:"intangible things – ideas, events, abstractions",cat:"Grammar"},
-    {jp:"もの",ro:"mono",furi:"",en:"tangible things – physical objects",cat:"Grammar"},
-    {jp:"きれいな人",ro:"kirei na hito",furi:"",en:"beautiful person",cat:"Vocab"},
-    {jp:"変わらない",ro:"kawaranai",furi:"かわらない",en:"does not change",cat:"Verb"},
-    {jp:"連絡先を教えてもいい",ro:"renraku saki wo oshiete mo ii",furi:"れんらくさきをおしえてもいい",en:"please give me your contact info",cat:"Phrase"},
-    {jp:"必要",ro:"hitsuyou",furi:"ひつよう",en:"necessary / needed",cat:"Vocab"},
-    {jp:"家族",ro:"kazoku",furi:"かぞく",en:"family",cat:"Vocab"},
-    {jp:"興味",ro:"kyoumi",furi:"きょうみ",en:"interest in something",cat:"Vocab"},
-    {jp:"いくらですか",ro:"ikura desu ka",furi:"",en:"how much is it?",cat:"Phrase"},
-    {jp:"〜たい",ro:"~tai",furi:"",en:"want to do something",cat:"Grammar"},
-    {jp:"〜ない",ro:"~nai",furi:"",en:"negative verb ending",cat:"Grammar"},
-    {jp:"〜て",ro:"~te",furi:"",en:"te-form – connects actions",cat:"Grammar"},
-    {jp:"〜よう・しょう",ro:"~you / ~shou",furi:"",en:"let's / shall we – volitional form",cat:"Grammar"},
-    {jp:"注文おねがいします",ro:"chuumon onegaishimasu",furi:"ちゅうもんおねがいします",en:"order please",cat:"Restaurant"},
-    {jp:"定食",ro:"teishoku",furi:"ていしょく",en:"Japanese-style set meal",cat:"Food"},
-    {jp:"いっぱい",ro:"ippai",furi:"",en:"full after eating",cat:"Food"},
-    {jp:"すいた",ro:"suita",furi:"",en:"hungry",cat:"Food"},
-    {jp:"まっすぐ",ro:"massugu",furi:"",en:"straight ahead",cat:"Direction"},
-    {jp:"右",ro:"migi",furi:"みぎ",en:"right →",cat:"Direction"},
-    {jp:"左",ro:"hidari",furi:"ひだり",en:"left ←",cat:"Direction"},
-    {jp:"上",ro:"ue",furi:"うえ",en:"up / above",cat:"Direction"},
-    {jp:"下",ro:"shita",furi:"した",en:"down / below",cat:"Direction"},
-    {jp:"中",ro:"naka",furi:"なか",en:"inside",cat:"Direction"},
-    {jp:"外",ro:"soto",furi:"そと",en:"outside",cat:"Direction"},
-    {jp:"出口",ro:"deguchi",furi:"でぐち",en:"exit",cat:"Place"},
-    {jp:"先週",ro:"senshuu",furi:"せんしゅう",en:"last week",cat:"Time"},
-    {jp:"来月",ro:"raigetsu",furi:"らいがつ",en:"next month",cat:"Time"},
-    {jp:"すぐ",ro:"sugu",furi:"",en:"soon",cat:"Time"},
-    {jp:"だけ",ro:"dake",furi:"",en:"just / only",cat:"Grammar"},
-    {jp:"せめて",ro:"semete",furi:"",en:"at least",cat:"Expression"},
-    {jp:"かな",ro:"kana",furi:"",en:"I wonder… / should I?",cat:"Expression"},
-    {jp:"借りてもいいですか",ro:"karite mo ii desu ka",furi:"かりてもいいですか",en:"may I borrow it?",cat:"Phrase"},
-    {jp:"またね",ro:"mata ne",furi:"",en:"see you later (casual)",cat:"Goodbye"},
-    {jp:"じゃあね",ro:"jaa ne",furi:"",en:"bye / see ya",cat:"Goodbye"},
-    {jp:"どうも",ro:"doumo",furi:"",en:"thanks (very casual)",cat:"Expression"},
-    {jp:"大変申し訳ございません",ro:"taihen moushiwake gozaimasen",furi:"たいへんもうしわけございません",en:"I am truly deeply sorry (very formal)",cat:"Apology"},
-    {jp:"よろしくお願いします",ro:"yoroshiku onegaishimasu",furi:"よろしくおねがいします",en:"nice to meet you / looking forward to it",cat:"Intro"},
-    {jp:"日本のすべてが大好きです",ro:"Nihon no subete ga daisuki desu",furi:"にほんのすべてがだいすきです",en:"I love everything about Japan",cat:"Intro"},
-    {jp:"独学で日本語を勉強しています",ro:"Dokugaku de Nihongo wo benkyou shite imasu",furi:"どくがくでにほんごをべんきょうしています",en:"I am studying Japanese on my own",cat:"Intro"},
-  ];
-  notes = s.map(n => ({ id: uid(), ...n, created: Date.now() }));
-  saveLocal();
-}
 
 // ── INIT ──
 loadLocal();
