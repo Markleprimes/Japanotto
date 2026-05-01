@@ -218,8 +218,6 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
 <div class="toast" id="toast"></div>
 
 <!-- Google Identity Services -->
-<script src="https://cdn.jsdelivr.net/npm/kuroshiro@1.2.0/dist/kuroshiro.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/kuroshiro-analyzer-kuromoji@1.1.0/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async></script>
 
 <script>
@@ -239,41 +237,6 @@ let voices = [];
 let accessToken = null;
 let driveFileId = null;
 
-
-// ── KUROSHIRO ──
-let kuroshiro = null;
-let kuroshiroReady = false;
-
-async function initKuroshiro() {
-  // Run in background, never block UI
-  setTimeout(async () => {
-    try {
-      kuroshiro = new Kuroshiro();
-      await kuroshiro.init(new KuromojiAnalyzer({
-        dictPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict'
-      }));
-      kuroshiroReady = true;
-      console.log('Kuroshiro ready');
-    } catch(e) {
-      kuroshiroReady = false;
-      console.warn('Kuroshiro failed:', e);
-    }
-  }, 100);
-}
-
-async function addFurigana(text) {
-  if (!kuroshiroReady || !text) return text;
-  try {
-    return await kuroshiro.convert(text, { mode: 'furigana', to: 'hiragana' });
-  } catch { return text; }
-}
-
-async function getRomaji(text) {
-  if (!kuroshiroReady || !text) return '';
-  try {
-    return await kuroshiro.convert(text, { mode: 'normal', to: 'romaji' });
-  } catch { return ''; }
-}
 
 // ── TOAST ──
 let toastTimer;
@@ -511,21 +474,10 @@ async function saveNote() {
   if (!jp && !en) { toast('Add some text first!'); return; }
   if (!cat) { toast('Pick a category!'); return; }
 
-  const btn = document.getElementById('btnSave');
-  btn.textContent = '…'; btn.disabled = true;
-
-  // Auto-generate furigana and romaji with Kuroshiro (offline, no API)
+    // No external library - save jp as-is, furigana blank for now
   const hasKanji = /[一-龯㐀-䶿]/.test(jp);
-  let furi = '';
-  let ro = '';
-  try {
-    if (kuroshiroReady) {
-      ro   = await getRomaji(jp);
-      furi = hasKanji ? await addFurigana(jp) : '';
-    }
-  } catch(e) { console.warn('kuroshiro convert failed', e); }
-
-  btn.textContent = 'Save'; btn.disabled = false;
+  const furi = '';
+  const ro = '';
 
   if (editingId) {
     const i = notes.findIndex(n => n.id === editingId);
@@ -666,7 +618,6 @@ function updatePlayerUI(n) {
 loadLocal();
 loadCustomCats();
 showList();
-initKuroshiro();
 
 // Try restore token from last session
 window.addEventListener('load', () => {
