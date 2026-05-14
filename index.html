@@ -127,6 +127,7 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:'S
     <div class="header-title">Japa<span>notto</span></div>
     <div class="header-actions">
       <button class="play-all-btn" onclick="playAll()">▶ All</button>
+      <button class="icon-btn" onclick="exportNotes()" title="Export notes">⬇</button>
       <button class="icon-btn" onclick="showEditor(null)">＋</button>
     </div>
   </div>
@@ -598,6 +599,47 @@ function togglePause() {
 }
 function playNextItem() { isPaused=false; document.getElementById('btnPause').textContent='⏸'; if(playIdx<playQueue.length-1) playFromIdx(playIdx+1); }
 function playPrevItem() { isPaused=false; document.getElementById('btnPause').textContent='⏸'; if(playIdx>0) playFromIdx(playIdx-1); }
+function exportNotes() {
+  if (!notes.length) { toast('No notes to export'); return; }
+  const lines = notes.map((n, i) =>
+    `${String(i+1).padStart(3,'0')}. ${n.jp}${n.ro ? ' ('+n.ro+')' : ''}\n     ${n.en}${n.cat ? '  ['+n.cat+']' : ''}`
+  ).join('\n\n');
+  const text = `JAPANOTTO NOTES\nExported: ${new Date().toLocaleDateString()}\nTotal: ${notes.length} notes\n\n${'─'.repeat(30)}\n\n${lines}`;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'japanotto_notes.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Downloaded ✓', 'ok');
+}
+
+function importNotes() {
+  const input = document.createElement('input');
+  input.type  = 'file';
+  input.accept = '.json';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const imported = Array.isArray(data) ? data : (data.notes || []);
+      const cats     = Array.isArray(data) ? [] : (data.customCats || []);
+      // Merge
+      const existingIds = new Set(notes.map(n => n.id));
+      const newNotes = imported.filter(n => !existingIds.has(n.id));
+      notes = [...newNotes, ...notes];
+      cats.forEach(c => { if (!customCats.includes(c)) customCats.push(c); });
+      saveLocal();
+      renderList();
+      toast(`Imported ${newNotes.length} notes ✓`, 'ok');
+    } catch { toast('Import failed', 'err'); }
+  };
+  input.click();
+}
+
 function stopAll() { window.speechSynthesis.cancel(); isPaused=false; playQueue=[]; playIdx=0; document.getElementById('playerBar').classList.remove('visible'); document.getElementById('btnPause').textContent='⏸'; renderList(); }
 function setSpeed(s,el) { speed=s; document.querySelectorAll('.speed-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); }
 function showPlayerBar() { document.getElementById('playerBar').classList.add('visible'); }
