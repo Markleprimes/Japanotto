@@ -605,14 +605,9 @@ function exportNotes() {
     `${String(i+1).padStart(3,'0')}. ${n.jp}${n.ro ? ' ('+n.ro+')' : ''}\n     ${n.en}${n.cat ? '  ['+n.cat+']' : ''}`
   ).join('\n\n');
   const text = `JAPANOTTO NOTES\nExported: ${new Date().toLocaleDateString()}\nTotal: ${notes.length} notes\n\n${'─'.repeat(30)}\n\n${lines}`;
-  const blob = new Blob([text], { type: 'text/plain' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'japanotto_notes.txt';
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('Downloaded ✓', 'ok');
+  navigator.clipboard.writeText(text)
+    .then(() => toast('Copied to clipboard ✓', 'ok'))
+    .catch(() => toast('Copy failed', 'err'));
 }
 
 function importNotes() {
